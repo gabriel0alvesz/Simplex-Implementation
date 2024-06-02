@@ -1,6 +1,6 @@
-from operator import index
 import numpy as np
 from ReadDocs import ReadDocs
+import time as tm
 
 class Simplex:
     def __init__(self):
@@ -37,7 +37,7 @@ class Simplex:
         for i in no_base:
             part_aux = np.dot(multiply_array, self.A[:,i])
             c_i = np.array(self.c[i]) - part_aux
-            costs.append(np.squeeze(np.asarray(c_i).flatten()[0])) # Chat gpt salvou nessa parte
+            costs.append(np.squeeze(np.asarray(c_i).flatten()[0])) # parte de conversao gerada com chat gpt
     
         return costs
     
@@ -70,30 +70,32 @@ class Simplex:
         return minimus
 
     def SwapColumns(self, value_k, value_n, base, no_base):
-        
         base[base.index(value_n)] = value_k
         no_base[no_base.index(value_k)] = value_n
 
-
+    def CalculateObjective(self, base, no_base, x_b):
+        array_aux = np.zeros(len(base) + len(no_base))
+        elements_not_null = [(b, float(x[0, 0])) for b, x in zip(base, x_b)]
+        
+        for x in elements_not_null:
+            array_aux[x[0]] = np.array(x[1])
+        
+        return [np.dot(self.c, array_aux), array_aux]
+        
     def InterationsSimplex(self):
-        # Sempre começa com a matriz identidade -> n = 5 e m = 2 => os indices da matriz identidade ser de (n-m) até (n-1)
-
+        start = tm.time()
         base = list(self.indexes_array[self.m-1:self.n]) # self.m-1 por indices começarem em zero.
         no_base = list(self.indexes_array[0:self.m-1])
         cont: int = 0
         
         while True:
-            print(base)
-            print(no_base)
-
             cont += 1
             print("Interação: ", cont)
 
             B_inv = np.linalg.inv(self.A[:, base]) # matriz inversa
             
             x_B = np.dot(B_inv,self.b) # solucao particular
-            # print(len(x_B))
-
+            
             # Custos reduzidos
             c_B = tuple(self.c[base])
             p_t = np.array(np.dot(c_B,B_inv))
@@ -102,15 +104,21 @@ class Simplex:
 
             if self.VerifyReducedCosts(reduced_costs): # Solução Ótima encontrada
                 
+                end = tm.time()
+                print(f"Solução Otima encontrada em {end-start: .6f} segundos")
+                result = self.CalculateObjective(base, no_base, x_B)
+                print(f"Função Objetivo é {result[0]: .4f}")
+                print("\nSolução:")
+
+                for x in range(0,len(self.c)):
+                    print(f"x[{x}] = {result[1][x]: .4f}")
                 break
             
             
             index_K = no_base[reduced_costs.index(min(reduced_costs))] # indice da coluna que entrará na base
 
             # Calculo dos minimos
-            print()
             Y = np.dot(B_inv, self.A[:,index_K])
-            
             isUnlimitedProblem = all(e < 0 for e in Y)
             
             if isUnlimitedProblem:
@@ -120,20 +128,17 @@ class Simplex:
             list_min = self.Minimus(x_B,Y)
             index_N = base[list_min.index(min(list_min))] # indice da coluna que irá sair da Base
             
-            self.SwapColumns(index_K, index_N, base, no_base)
+            end = tm.time()
+            print(f"Tempo(s): {end-start: .6f}")
+            print(f"Objetivo: {self.CalculateObjective(base, no_base, x_B)[0]: .4f}")
 
-            print(base)
-            print(no_base)
-
-            break
-    
+            self.SwapColumns(index_K, index_N, base, no_base) # Troca os indices nos conjutos base e não base
+            print("\n")
 
 if __name__ == "__main__":
 
     sp = Simplex()
 
     sp.CreateMatrices()
-
-    # sp.PrintData()
 
     sp.InterationsSimplex()
