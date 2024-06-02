@@ -69,6 +69,11 @@ class Simplex:
             minimus.append(min)
         return minimus
 
+    def SwapColumns(self, value_k, value_n, base, no_base):
+        
+        base[base.index(value_n)] = value_k
+        no_base[no_base.index(value_k)] = value_n
+
 
     def InterationsSimplex(self):
         # Sempre começa com a matriz identidade -> n = 5 e m = 2 => os indices da matriz identidade ser de (n-m) até (n-1)
@@ -78,6 +83,9 @@ class Simplex:
         cont: int = 0
         
         while True:
+            print(base)
+            print(no_base)
+
             cont += 1
             print("Interação: ", cont)
 
@@ -96,8 +104,8 @@ class Simplex:
                 
                 break
             
-            # Qual indice sairá da nao base entrará na base
-            index_K = no_base[reduced_costs.index(min(reduced_costs))]
+            
+            index_K = no_base[reduced_costs.index(min(reduced_costs))] # indice da coluna que entrará na base
 
             # Calculo dos minimos
             print()
@@ -111,10 +119,11 @@ class Simplex:
             
             list_min = self.Minimus(x_B,Y)
             index_N = base[list_min.index(min(list_min))] # indice da coluna que irá sair da Base
-            print(self.A[:, index_N])
             
-            
+            self.SwapColumns(index_K, index_N, base, no_base)
 
+            print(base)
+            print(no_base)
 
             break
     
