@@ -1,3 +1,4 @@
+from operator import index
 import numpy as np
 from ReadDocs import ReadDocs
 
@@ -52,12 +53,21 @@ class Simplex:
             return True #Solução ótima encontrada -> todos os custos maiores que zero
         else:
             return False # Ainda a custos negativos
-    def DefineNewIndexBase(self, costs: list, no_base: list) -> int:
 
-        index = costs.index(min(costs))
-
-        print(index)
+    # Reason Test
+    def Minimus(self, x_b, y):
+        minimus = []
         
+        for e in range(len(x_b)):
+            min: float
+            if(y[e][0] != 0):
+                min = x_b[e][0]/y[e][0]
+                min = np.squeeze(np.asarray(min).flatten()[0])
+            else: 
+                min = float('inf') # gambiarra para representar o maximo, ja que busco o minimo de todos
+
+            minimus.append(min)
+        return minimus
 
 
     def InterationsSimplex(self):
@@ -74,30 +84,40 @@ class Simplex:
             B_inv = np.linalg.inv(self.A[:, base]) # matriz inversa
             
             x_B = np.dot(B_inv,self.b) # solucao particular
+            # print(len(x_B))
 
             # Custos reduzidos
             c_B = tuple(self.c[base])
             p_t = np.array(np.dot(c_B,B_inv))
             
             reduced_costs = self.CalculateReducedCosts(p_t,no_base)
-            print(reduced_costs)
 
             if self.VerifyReducedCosts(reduced_costs): # Solução Ótima encontrada
                 
                 break
             
             # Qual indice sairá da nao base entrará na base
-            index_go_base = no_base[reduced_costs.index(min(reduced_costs))]
+            index_K = no_base[reduced_costs.index(min(reduced_costs))]
+
+            # Calculo dos minimos
+            print()
+            Y = np.dot(B_inv, self.A[:,index_K])
+            
+            isUnlimitedProblem = all(e < 0 for e in Y)
+            
+            if isUnlimitedProblem:
+                print("Problema Ilimitado!")
+                break
+            
+            list_min = self.Minimus(x_B,Y)
+            index_N = base[list_min.index(min(list_min))] # indice da coluna que irá sair da Base
+            print(self.A[:, index_N])
+            
             
 
 
             break
     
-        
-            
-
-        
-
 
 if __name__ == "__main__":
 
