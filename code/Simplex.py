@@ -11,9 +11,10 @@ class Simplex:
         self.b: np.array
         self.indexes_array: list
 
-    def CreateMatrices(self):
+    def CreateMatrices(self, name_file: str):
         rd = ReadDocs()
-        rd.ReadDoc("input.txt")
+
+        rd.ReadDoc(name_file)
         rd.Tokenizer()
         list_aux = rd.DefineMatrices()
 
@@ -139,6 +140,10 @@ if __name__ == "__main__":
 
     sp = Simplex()
 
-    sp.CreateMatrices()
+    name_file = input("Digite o Nome do arquivo com o formato: ")
+    try:
+        sp.CreateMatrices(name_file)
 
-    sp.InterationsSimplex()
+        sp.InterationsSimplex()
+    except:
+        print("Erro!")
